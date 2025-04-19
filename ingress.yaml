@@ -1,0 +1,54 @@
+# ingress-updated.yaml (For AWS ALB Ingress Controller)
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: betterwellness-ingress
+  namespace: default
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/backend-protocol: HTTP
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS": 443}, {"HTTP": 80}]'
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-southeast-1:529088268162:certificate/40a3caca-654e-4f0e-a36e-8dee4055255f
+    alb.ingress.kubernetes.io/load-balancer-attributes: idle_timeout.timeout_seconds=3600
+spec:
+  ingressClassName: alb
+  rules:
+    - http:
+        paths:
+          - path: /booking
+            pathType: Prefix
+            backend:
+              service:
+                name: betterwellness-booking-service
+                port:
+                  number: 8080
+          - path: /counsellor
+            pathType: Prefix
+            backend:
+              service:
+                name: betterwellness-counsellor-service
+                port:
+                  number: 8080
+          - path: /user
+            pathType: Prefix
+            backend:
+              service:
+                name: betterwellness-user-service
+                port:
+                  number: 8080
+          - path: /messaging
+            pathType: Prefix
+            backend:
+              service:
+                name: betterwellness-messaging-service
+                port:
+                  number: 8080
+          - path: /socket.io
+            pathType: Prefix
+            backend:
+              service:
+                name: betterwellness-messaging-service
+                port:
+                  number: 8080

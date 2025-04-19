@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: betterwellness-counsellor
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: betterwellness-counsellor
+  template:
+    metadata:
+      labels:
+        app: betterwellness-counsellor
+    spec:
+      imagePullSecrets:
+        - name: regcred
+      containers:
+        - name: betterwellness-counsellor
+          image: 529088268162.dkr.ecr.ap-southeast-1.amazonaws.com/betterwellness/counsellor-service:latest
+          ports:
+            - containerPort: 5000
+          envFrom:
+            - secretRef:
+                name: betterwellness-config
+          resources:
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: betterwellness-counsellor-service
+spec:
+  selector:
+    app: betterwellness-counsellor
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 5000
+  type: ClusterIP

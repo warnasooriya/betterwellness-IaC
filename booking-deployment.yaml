@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: betterwellness-booking
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: betterwellness-booking
+  template:
+    metadata:
+      labels:
+        app: betterwellness-booking
+    spec:
+      imagePullSecrets:
+        - name: regcred
+      containers:
+        - name: betterwellness-booking
+          image: 529088268162.dkr.ecr.ap-southeast-1.amazonaws.com/betterwellness/booking-service:latest
+          ports:
+            - containerPort: 5002
+          envFrom:
+            - secretRef:
+                name: betterwellness-config
+          resources:
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: betterwellness-booking-service
+spec:
+  selector:
+    app: betterwellness-booking
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 5002
+  type: ClusterIP

@@ -1,0 +1,92 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  AWS CloudFormation Template for Amazon DocumentDB Cluster and Instance with Subnet Group and VPC Security Groups.
+
+Parameters:
+  DBClusterName:
+    Type: String
+    Default: "MyCluster"
+    Description: "DocumentDB Cluster Name"
+    MinLength: 1
+    MaxLength: 64
+    AllowedPattern: "[a-zA-Z][a-zA-Z0-9]*(-[a-zA-Z0-9]+)*"
+    ConstraintDescription: "Must begin with a letter and contain only alphanumeric characters."
+
+  DBInstanceName:
+    Type: String
+    Default: "MyInstance"
+    Description: "DocumentDB Instance Name"
+    MinLength: 1
+    MaxLength: 64
+    AllowedPattern: "[a-zA-Z][a-zA-Z0-9]*(-[a-zA-Z0-9]+)*"
+    ConstraintDescription: "Must begin with a letter and contain only alphanumeric characters."
+
+  MasterUser:
+    NoEcho: true
+    Type: String
+    Description: "Master username"
+    MinLength: 1
+    MaxLength: 16
+    AllowedPattern: "[a-zA-Z][a-zA-Z0-9]*"
+    ConstraintDescription: "Must begin with a letter and contain only alphanumeric characters."
+
+  MasterPassword:
+    NoEcho: true
+    Type: String
+    Description: "Master password"
+    MinLength: 1
+    MaxLength: 41
+    AllowedPattern: "[a-zA-Z0-9]+"
+    ConstraintDescription: "Must contain only alphanumeric characters."
+
+  DBInstanceClass:
+    Type: String
+    Default: db.t3.medium
+    Description: "DocumentDB Instance Class"
+    AllowedValues:
+      - db.t3.medium
+      - db.r5.large
+      - db.r5.xlarge
+      - db.r5.2xlarge
+      - db.r5.4xlarge
+      - db.r5.12xlarge
+      - db.r5.24xlarge
+    ConstraintDescription: "Must be a valid DocumentDB instance class."
+
+  DBSubnetGroupName:
+    Type: String
+    Description: "Existing DocumentDB Subnet Group Name"
+
+  VPCSecurityGroupIds:
+    Type: List<AWS::EC2::SecurityGroup::Id>
+    Description: "List of VPC Security Group IDs to associate with DocumentDB"
+
+Resources:
+  DBCluster:
+    Type: "AWS::DocDB::DBCluster"
+    DeletionPolicy: Delete
+    Properties:
+      DBClusterIdentifier: !Ref DBClusterName
+      MasterUsername: !Ref MasterUser
+      MasterUserPassword: !Ref MasterPassword
+      EngineVersion: 4.0.0
+      DBSubnetGroupName: !Ref DBSubnetGroupName
+      VpcSecurityGroupIds: !Ref VPCSecurityGroupIds
+
+  DBInstance:
+    Type: "AWS::DocDB::DBInstance"
+    Properties:
+      DBClusterIdentifier: !Ref DBCluster
+      DBInstanceIdentifier: !Ref DBInstanceName
+      DBInstanceClass: !Ref DBInstanceClass
+    DependsOn: DBCluster
+
+Outputs:
+  ClusterId:
+    Value: !Ref DBCluster
+  ClusterEndpoint:
+    Value: !GetAtt DBCluster.Endpoint
+  ClusterPort:
+    Value: !GetAtt DBCluster.Port
+  EngineVersion:
+    Value: "4.0.0"

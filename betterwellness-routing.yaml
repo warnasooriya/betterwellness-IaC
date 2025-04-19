@@ -1,0 +1,166 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: API Gateway HTTP API with multiple routes to ALB
+
+Parameters:
+  ALBDnsName:
+    Type: String
+    Description: DNS name of the ALB (without http://)
+
+Resources:
+
+  # Create the HTTP API
+  HttpApi:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: BetterWellnessAPI
+      ProtocolType: HTTP
+      CorsConfiguration:
+        AllowMethods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - OPTIONS
+        AllowOrigins:
+          - "https://master.d2awhgnsgb5r2e.amplifyapp.com"
+        AllowHeaders:
+          - "Content-Type"
+          - "Authorization"
+          - "X-Requested-With"
+          - "Searchtext"
+        AllowCredentials: true
+
+  # -------- INTEGRATIONS --------
+  CounsellorIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApi
+      IntegrationType: HTTP_PROXY
+      IntegrationMethod: ANY
+      IntegrationUri: !Sub "http://${ALBDnsName}/counsellor/{proxy}"
+      PayloadFormatVersion: "1.0"
+      ConnectionType: INTERNET
+
+  BookingIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApi
+      IntegrationType: HTTP_PROXY
+      IntegrationMethod: ANY
+      IntegrationUri: !Sub "http://${ALBDnsName}/booking/{proxy}"
+      PayloadFormatVersion: "1.0"
+      ConnectionType: INTERNET
+
+  UserIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApi
+      IntegrationType: HTTP_PROXY
+      IntegrationMethod: ANY
+      IntegrationUri: !Sub "http://${ALBDnsName}/user/{proxy}"
+      PayloadFormatVersion: "1.0"
+      ConnectionType: INTERNET
+
+  MessagingIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApi
+      IntegrationType: HTTP_PROXY
+      IntegrationMethod: ANY
+      IntegrationUri: !Sub "http://${ALBDnsName}/messaging/{proxy}"
+      PayloadFormatVersion: "1.0"
+      ConnectionType: INTERNET
+
+  SocketIOIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApi
+      IntegrationType: HTTP_PROXY
+      IntegrationMethod: ANY
+      IntegrationUri: !Sub "http://${ALBDnsName}/socket.io/{proxy}"
+      PayloadFormatVersion: "1.0"
+      ConnectionType: INTERNET
+      
+  # -------- ROUTES --------
+  CounsellorRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: "ANY /counsellor/{proxy+}"
+      Target: !Sub "integrations/${CounsellorIntegration}"
+
+  BookingRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: "ANY /booking/{proxy+}"
+      Target: !Sub "integrations/${BookingIntegration}"
+
+  UserRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: "ANY /user/{proxy+}"
+      Target: !Sub "integrations/${UserIntegration}"
+
+  MessagingRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: "ANY /messaging/{proxy+}"
+      Target: !Sub "integrations/${MessagingIntegration}"
+  SocketIORoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: "ANY /socket.io/{proxy+}"
+      Target: !Sub "integrations/${SocketIOIntegration}"
+      
+  # -------- OPTIONS ROUTES FOR CORS --------
+  CounsellorOptionsRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: "OPTIONS /counsellor/{proxy+}"
+      Target: !Sub "integrations/${CounsellorIntegration}"
+
+  BookingOptionsRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: "OPTIONS /booking/{proxy+}"
+      Target: !Sub "integrations/${BookingIntegration}"
+
+  UserOptionsRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: "OPTIONS /user/{proxy+}"
+      Target: !Sub "integrations/${UserIntegration}"
+
+  MessagingOptionsRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: "OPTIONS /messaging/{proxy+}"
+      Target: !Sub "integrations/${MessagingIntegration}"
+
+  SocketIOOptionsRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: "OPTIONS /socket.io/{proxy+}"
+      Target: !Sub "integrations/${SocketIOIntegration}"
+
+  # -------- STAGE --------
+  HttpApiStage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      ApiId: !Ref HttpApi
+      StageName: "$default"
+      AutoDeploy: true
+
+Outputs:
+  ApiEndpoint:
+    Description: Base URL of the deployed API Gateway
+    Value: !Sub "https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com"

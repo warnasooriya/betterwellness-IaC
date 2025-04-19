@@ -1,0 +1,17 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Federated": "arn:aws:iam::529088268162:oidc-provider/oidc.eks.<REGION>.amazonaws.com/id/71B4D5459E1A0319B69A9329EC6483E4"
+      },
+      "Action": "sts:AssumeRoleWithWebIdentity",
+      "Condition": {
+        "StringEquals": {
+          "oidc.eks.<REGION>.amazonaws.com/id/71B4D5459E1A0319B69A9329EC6483E4:sub": "system:serviceaccount:default:eso-irsa"
+        }
+      }
+    }
+  ]
+}

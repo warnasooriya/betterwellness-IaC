@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: betterwellness-messaging
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: betterwellness-messaging
+  template:
+    metadata:
+      labels:
+        app: betterwellness-messaging
+    spec:
+      imagePullSecrets:
+        - name: regcred
+      containers:
+        - name: betterwellness-messaging
+          image: 529088268162.dkr.ecr.ap-southeast-1.amazonaws.com/betterwellness/messaging-service:latest
+          ports:
+            - containerPort: 5003
+          envFrom:
+            - secretRef:
+                name: betterwellness-config
+          resources:
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: betterwellness-messaging-service
+spec:
+  selector:
+    app: betterwellness-messaging
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 5003
+  type: ClusterIP

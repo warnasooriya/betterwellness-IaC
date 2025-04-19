@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: betterwellness-user
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: betterwellness-user
+  template:
+    metadata:
+      labels:
+        app: betterwellness-user
+    spec:
+      imagePullSecrets:
+        - name: regcred
+      containers:
+        - name: betterwellness-user
+          image: 529088268162.dkr.ecr.ap-southeast-1.amazonaws.com/betterwellness/user-service:latest
+          ports:
+            - containerPort: 5001
+          envFrom:
+            - secretRef:
+                name: betterwellness-config
+          resources:
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: betterwellness-user-service
+spec:
+  selector:
+    app: betterwellness-user
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 5001
+  type: ClusterIP
