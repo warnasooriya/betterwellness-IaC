@@ -55,7 +55,25 @@ kubectl get ingress betterwellness-ingress -o jsonpath='{.status.loadBalancer.in
 aws cloudformation deploy --template-file betterwellness-routing.yaml --stack-name betterwellness-api-gateway --parameter-overrides ALBDnsName=k8s-default-betterwe-4524c49168-922186776.ap-southeast-1.elb.amazonaws.com --capabilities CAPABILITY_IAM
 
 
+aws apigatewayv2 update-route  --api-id bdoazp5j9b  --route-id j86i6ok  --authorization-type JWT  --authorizer-id d33q6c   --region ap-southeast-1
+aws apigatewayv2 update-route  --api-id bdoazp5j9b  --route-id 4r3f0r9  --authorization-type JWT  --authorizer-id d33q6c   --region ap-southeast-1
+aws apigatewayv2 update-route  --api-id bdoazp5j9b  --route-id 0wyu2ha  --authorization-type JWT  --authorizer-id d33q6c   --region ap-southeast-1
+aws apigatewayv2 update-route  --api-id bdoazp5j9b  --route-id m5ruais  --authorization-type JWT  --authorizer-id d33q6c   --region ap-southeast-1
+
+
+
+  
 make route 53 - A Record for with  ALB DNS to Domain 
+
+
+-- To find your AWS EKS cluster's OIDC provider ID (<OIDC_ID>), follow one of the methods below:
+ aws eks describe-cluster --name betterwellness-cluster --query "cluster.identity.oidc.issuer" --output text
+
+aws iam create-role --role-name BetterwellnessExternalSecretsRole  --assume-role-policy-document file://trust-policy.json
+
+ Attach IAM Policy to Access SecretsManager
+ 
+ aws iam put-role-policy  --role-name BetterwellnessExternalSecretsRole  --policy-name ExternalSecretsAccess  --policy-document file://secretsmanager-policy.json
 
 
 ---- ECR Connecting 
@@ -86,6 +104,19 @@ kubectl rollout restart deployment betterwellness-user
 
 
 ---- MNITRING -----
+--- Install Prometheus in Your EKS Cluster
+
+helm upgrade --install loki grafana/loki-stack  --namespace monitoring --create-namespace   --set promtail.enabled=true   --set grafana.enabled=true   --set grafana.sidecar.datasources.enabled=true
+
+helm install prometheus prometheus-community/prometheus  --namespace monitoring --create-namespace   --set server.persistentVolume.enabled=false
+
+
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+
+helm install prometheus prometheus-community/prometheus --namespace monitoring --create-namespace
+
+kubectl port-forward -n monitoring svc/loki-grafana 3000:80
 
 GRAPHANA Password
 $secret = kubectl get secret --namespace monitoring loki-grafana `
@@ -93,8 +124,11 @@ $secret = kubectl get secret --namespace monitoring loki-grafana `
 
 [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($secret))
 
-
+admin
 2ZaG1WXAmTARzu9Rso8KGH6C5jE2puahQtXgq25w
+
+
+
 
 
 ----- DELETING INFRA

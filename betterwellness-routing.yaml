@@ -109,13 +109,7 @@ Resources:
       ApiId: !Ref HttpApi
       RouteKey: "ANY /messaging/{proxy+}"
       Target: !Sub "integrations/${MessagingIntegration}"
-  SocketIORoute:
-    Type: AWS::ApiGatewayV2::Route
-    Properties:
-      ApiId: !Ref HttpApi
-      RouteKey: "ANY /socket.io/{proxy+}"
-      Target: !Sub "integrations/${SocketIOIntegration}"
-      
+    
   # -------- OPTIONS ROUTES FOR CORS --------
   CounsellorOptionsRoute:
     Type: AWS::ApiGatewayV2::Route
@@ -144,13 +138,6 @@ Resources:
       ApiId: !Ref HttpApi
       RouteKey: "OPTIONS /messaging/{proxy+}"
       Target: !Sub "integrations/${MessagingIntegration}"
-
-  SocketIOOptionsRoute:
-    Type: AWS::ApiGatewayV2::Route
-    Properties:
-      ApiId: !Ref HttpApi
-      RouteKey: "OPTIONS /socket.io/{proxy+}"
-      Target: !Sub "integrations/${SocketIOIntegration}"
 
   # -------- STAGE --------
   HttpApiStage:
